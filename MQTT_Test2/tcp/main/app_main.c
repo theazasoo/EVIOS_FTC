@@ -30,6 +30,42 @@
 #include "esp_log.h"
 #include "mqtt_client.h"
 
+/*
+ * @brief Event handler registered to receive MQTT events
+ *
+ *  This function is called by the MQTT client event loop.
+ *
+ * @param handler_args user data registered to the event.
+ * @param base Event base for the handler(always MQTT Base in this example).
+ * @param event_id The id for the received event.
+ * @param event_data The data for the event, esp_mqtt_event_handle_t.
+ */
+
+
+// Declare the queues for MQTT and Bluetooth
+QueueHandle_t mqttQueue;
+QueueHandle_t bluetoothQueue;
+
+
+// Init Queus based on message size
+void initQueues() {
+    mqttQueue = xQueueCreate(10, sizeof(Message));
+    bluetoothQueue = xQueueCreate(10, sizeof(Message));
+}
+
+//MQTT message receive
+void mqttReceived(char* msg, int msg_len) {
+    Message newMessage;
+    memcpy(newMessage.message, msg, msg_len);
+    newMessage.msg_len = msg_len;
+
+    xQueueSend(mqttQueue, &newMessage, portMAX_DELAY);
+}
+
+
+
+
+
 static const char *TAG = "MQTT_EXAMPLE";
 
 
@@ -169,3 +205,5 @@ void app_main(void)
 
     mqtt_app_start();
 }
+
+
