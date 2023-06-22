@@ -32,6 +32,17 @@
 
 static const char *TAG = "MQTT_EXAMPLE";
 
+//mqtt buffer variables
+typedef struct {
+  uint8_t *data; // Pointer to the payload data
+  size_t size; // Size of the payload data
+} mqtt_message_payload_buffer;
+
+mqtt_message_payload_buffer buffer;
+buffer.data = malloc(500); // Allocate memory for the payload data
+buffer.size = 0; // Initialize the payload size
+
+//end og mqtt buffer variables
 
 static void log_error_if_nonzero(const char *message, int error_code)
 {
@@ -142,6 +153,28 @@ static void mqtt_app_start(void)
     esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
     esp_mqtt_client_start(client);
 }
+
+//Buffers Setup
+//MQTT Buffer
+void mqttbufer()
+{
+// Receive the payload data
+int bytes_received = mqtt_receive_payload(buffer.data, 500);
+
+// Check if the receive was successful
+if (bytes_received > 0) {
+  // The payload was received successfully
+  buffer.size = bytes_received;
+} else {
+  // The receive was not successful
+}
+// Free the memory for the payload data
+free(buffer.data);
+}
+
+
+
+
 
 void app_main(void)
 {
