@@ -1,10 +1,6 @@
-/* MQTT (over TCP) Example
+/* MQTT and Bluetooth
 
-   This example code is in the Public Domain (or CC0 licensed, at your option.)
-
-   Unless required by applicable law or agreed to in writing, this
-   software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-   CONDITIONS OF ANY KIND, either express or implied.
+  
 */
 
 #include <stdio.h>
@@ -37,7 +33,7 @@ Julius Code Starts here
 
 // Declare the queues for MQTT and Bluetooth
 QueueHandle_t mqttQueue;
-QueueHandle_t bluetoothQueue;
+QueueHandle_t btQueue;
 
 typedef struct {
     char message[MAX_MESSAGE_SIZE];
@@ -49,11 +45,11 @@ typedef struct {
 void initQueues() 
 {
     mqttQueue = xQueueCreate(10, sizeof(Message));
-    bluetoothQueue = xQueueCreate(10, sizeof(Message));
+    btQueue = xQueueCreate(10, sizeof(Message));
 }
 
 //MQTT message receive
-void mqttReceived(char* msg, int msg_len) 
+void MQTTMsgRx(char* msg, int msg_len) 
 {
     Message newMessage;
     memcpy(newMessage.message, msg, msg_len);
@@ -74,13 +70,13 @@ void mqttTask(void *pvParameters) {
 }
 
 //Bluetooth message receive
-void bluetoothReceived(char* msg, int msg_len) 
+void BluetoothMsgRx(char* msg, int msg_len) 
 {
     Message newMessage;
     memcpy(newMessage.message, msg, msg_len);
     newMessage.msg_len = msg_len;
 
-    xQueueSend(bluetoothQueue, &newMessage, portMAX_DELAY);
+    xQueueSend(btQueue, &newMessage, portMAX_DELAY);
 }
 
 //Bluetooth message send
@@ -88,7 +84,7 @@ void bluetoothTask(void *pvParameters)
  {
     Message messageToSend;
     while (1) {
-        if (xQueueReceive(bluetoothQueue, &messageToSend, portMAX_DELAY)) {
+        if (xQueueReceive(btQueue, &messageToSend, portMAX_DELAY)) {
             // TODO: Implement your Bluetooth sending function here.
             // After successful sending, remove the message from the queue.
         }
@@ -125,7 +121,8 @@ void mqttPersistTask(void *pvParameters) {
 }
 
 //Storing the content of the bluetooth queue to NVS
-void bluetoothPersistTask(void *pvParameters) {
+void bluetoothPersistTask(void *pvParameters) 
+{
     nvs_handle_t my_handle;
     esp_err_t err = nvs_open("storage", NVS_READWRITE, &my_handle);
     if (err != ESP_OK) {
@@ -136,7 +133,7 @@ void bluetoothPersistTask(void *pvParameters) {
     Message message;
     while (1)
     {
-        if (xQueueReceive(bluetoothQueue, &message, portMAX_DELAY)) {
+        if (xQueueReceive(btQueue, &message, portMAX_DELAY)) {
             err = nvs_set_blob(my_handle, "bluetooth_message", &message, sizeof(Message));
             if (err != ESP_OK) {
                 // Handle error
