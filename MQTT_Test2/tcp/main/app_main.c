@@ -31,16 +31,9 @@
 #include "mqtt_client.h"
 
 /*
- * @brief Event handler registered to receive MQTT events
- *
- *  This function is called by the MQTT client event loop.
- *
- * @param handler_args user data registered to the event.
- * @param base Event base for the handler(always MQTT Base in this example).
- * @param event_id The id for the received event.
- * @param event_data The data for the event, esp_mqtt_event_handle_t.
+Julius Code Starts here
  */
-
+#include <Queue.h>
 
 // Declare the queues for MQTT and Bluetooth
 QueueHandle_t mqttQueue;
@@ -54,7 +47,8 @@ void initQueues() {
 }
 
 //MQTT message receive
-void mqttReceived(char* msg, int msg_len) {
+void mqttReceived(char* msg, int msg_len) 
+{
     Message newMessage;
     memcpy(newMessage.message, msg, msg_len);
     newMessage.msg_len = msg_len;
@@ -62,9 +56,42 @@ void mqttReceived(char* msg, int msg_len) {
     xQueueSend(mqttQueue, &newMessage, portMAX_DELAY);
 }
 
+//MQTT message send
+void mqttTask(void *pvParameters) {
+    Message messageToSend;
+    while (1) {
+        if (xQueueReceive(mqttQueue, &messageToSend, portMAX_DELAY)) {
+            // TODO: Implement your MQTT sending function here.
+            // After successful sending, remove the message from the queue.
+        }
+    }
+}
 
+//Bluetooth message receive
+void bluetoothReceived(char* msg, int msg_len) 
+{
+    Message newMessage;
+    memcpy(newMessage.message, msg, msg_len);
+    newMessage.msg_len = msg_len;
 
+    xQueueSend(bluetoothQueue, &newMessage, portMAX_DELAY);
+}
 
+//Bluetooth message send
+void bluetoothTask(void *pvParameters)
+ {
+    Message messageToSend;
+    while (1) {
+        if (xQueueReceive(bluetoothQueue, &messageToSend, portMAX_DELAY)) {
+            // TODO: Implement your Bluetooth sending function here.
+            // After successful sending, remove the message from the queue.
+        }
+    }
+ }
+
+/*
+Julius Code Ends here
+ */
 
 static const char *TAG = "MQTT_EXAMPLE";
 
