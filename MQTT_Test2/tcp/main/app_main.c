@@ -89,6 +89,36 @@ void bluetoothTask(void *pvParameters)
     }
  }
 
+
+//Storing the content of the queue to NVS
+void mqttPersistTask(void *pvParameters) {
+    // Open an NVS handle for the "storage" namespace.
+    nvs_handle_t my_handle;
+    esp_err_t err = nvs_open("storage", NVS_READWRITE, &my_handle);
+    if (err != ESP_OK) {
+        // Handle error
+        return;
+    }
+
+    // Enter an infinite loop.
+    while (1) {
+        // Receive a message from the MQTT queue.
+        Message message;
+        if (xQueueReceive(mqttQueue, &message, portMAX_DELAY)) {
+            // Store the message in NVS.
+            err = nvs_set_blob(my_handle, "mqtt_message", &message, sizeof(Message));
+            if (err != ESP_OK) {
+                // Handle error
+                return;
+            }
+        }
+    }
+
+    // Close the NVS handle.
+    nvs_close(my_handle);
+}
+
+
 /*
 Julius Code Ends here
  */
