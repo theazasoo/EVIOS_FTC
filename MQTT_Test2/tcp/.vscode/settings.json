@@ -1,6 +1,0 @@
-{
-  "C_Cpp.intelliSenseEngine": "Tag Parser",
-  "idf.flashType": "UART",
-  "idf.port": "/dev/cu.usbmodem54E20230651",
-  "idf.adapterTargetName": "esp32s3"
-}
